@@ -8,7 +8,7 @@ import { StepProps } from '../components/stepper';
 import { Link } from '../components/Link';
 
 const options: Options = {
-	debug: true,
+	debug: false,
 	useChecksum: true,
 	dump: false,
 	keySize: 2048,
