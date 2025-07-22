@@ -3,12 +3,21 @@ import { Module } from '.';
 import { RootState } from '../state';
 import { Acquisition, runShellAndAddToAcquisition } from '../utils/acquisition';
 
-export const dumpsysModule: Module = {
+const NAMESPACES = ['system', 'secure', 'global'];
+
+export const settingsModule: Module = {
 	render: () => {
 		return <></>;
 	},
 	run: async (acq: Acquisition, client: AdbClient, _state: RootState) => {
-		await runShellAndAddToAcquisition(acq, client, 'dumpsys', 'dumpsys');
+		for (const namespace of NAMESPACES) {
+			await runShellAndAddToAcquisition(
+				acq,
+				client,
+				`cmd settings list ${namespace}`,
+				`settings_${namespace}`,
+			);
+		}
 	},
-	name: 'Dumpsys',
+	name: 'Settings',
 };

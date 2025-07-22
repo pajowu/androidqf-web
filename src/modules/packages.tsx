@@ -1,11 +1,11 @@
 import { AdbClient } from 'wadb';
 import { Module } from '.';
 import { RootState } from '../state';
-import { Acquisition, getReadableStreamFromAsyncGenerator } from '../utils/acquisition';
-import { AppContainer } from '../components/AppContainer';
+import { Acquisition, runShellAndAddToAcquisition } from '../utils/acquisition';
 import { useAppDispatch, useAppSelector } from '../state/hooks';
 import { Select } from '../components/input';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { getHashData } from '../utils/getHashData';
 
 type PackageInfo = {
 	name: string;
@@ -36,9 +36,6 @@ const FIELD_ARGS: { field: KeyOfType<PackageInfo, boolean>; arg: string }[] = [
 
 const HASHES: KeyOfType<PackageFile, string>[] = ['md5', 'sha1', 'sha256', 'sha512'];
 
-// Debug flag to load apks after each other instead of using parallel streams
-const SEQUENTIAL_LOAD = true;
-
 function trimPrefix(input: string, prefix: string): string {
 	if (input.startsWith(prefix)) {
 		return input.slice(prefix.length);
@@ -46,11 +43,10 @@ function trimPrefix(input: string, prefix: string): string {
 	return input;
 }
 async function runPmAndPreParse(client: AdbClient, args: string): Promise<[string, string][]> {
-	// TODO: Handle status code != 0
-	const packageList = await client.shellV2(`pm list packages ${args}`);
+	const packageList = await client.shell(`pm list packages ${args}`);
 
 	const packageData: [string, string][] = [];
-	for (const line of packageList.stdout.trim().split('\n')) {
+	for (const line of packageList.trim().split('\n')) {
 		const [packageName, data] = line.split(/\s+/, 2);
 		const parsedPackageName = trimPrefix(packageName, 'package:');
 		packageData.push([parsedPackageName, data]);
@@ -59,10 +55,9 @@ async function runPmAndPreParse(client: AdbClient, args: string): Promise<[strin
 }
 
 async function getPackageFiles(client: AdbClient, packageName: string): Promise<PackageFile[]> {
-	const fileList = await client.shellV2(`pm path ${packageName}`);
-	// TODO: Handle status code != 0
+	const fileList = await client.shell(`pm path ${packageName}`);
 	const files: PackageFile[] = [];
-	for (const line of fileList.stdout.trim().split('\n')) {
+	for (const line of fileList.trim().split('\n')) {
 		const packagePath = trimPrefix(line, 'package:');
 		const file: PackageFile = {
 			path: packagePath,
@@ -73,8 +68,8 @@ async function getPackageFiles(client: AdbClient, packageName: string): Promise<
 		};
 		for (const hash of HASHES) {
 			// TODO: Handle status code != 0
-			const out = await client.shellV2(`${hash}sum ${packagePath}`);
-			file[hash] = out.stdout.split(' ', 1)[0];
+			const out = await client.shell(`${hash}sum ${packagePath}`);
+			file[hash] = out.split(' ', 1)[0];
 		}
 		files.push(file);
 	}
@@ -82,10 +77,6 @@ async function getPackageFiles(client: AdbClient, packageName: string): Promise<
 }
 
 async function getPackages(client: AdbClient): Promise<PackageInfo[]> {
-	const packageList = await client.shellV2('pm list packages -u -i');
-	console.log('Packages', packageList);
-
-	// TODO: Handle status code != 0
 	const packages: PackageInfo[] = [];
 
 	for (const [packageName, rawInstaller] of await runPmAndPreParse(client, '-u -i')) {
@@ -130,11 +121,19 @@ enum Mode {
 }
 export type PackagesSlice = { mode: Mode };
 
+function getInitialState(): PackagesSlice {
+	const hashData = getHashData();
+	let mode = Mode.None;
+	if ('packages.mode' in hashData && hashData['packages.mode'] == 'all') {
+		mode = Mode.All;
+	} else if ('packages.mode' in hashData && hashData['packages.mode'] == 'notsystem') {
+		mode = Mode.NotSystem;
+	}
+	return { mode };
+}
 export const packagesSlice = createSlice({
 	name: 'package',
-	initialState: {
-		mode: Mode.None,
-	} as PackagesSlice,
+	initialState: getInitialState,
 	reducers: {
 		setMode: (slice, action: PayloadAction<Mode>) => {
 			slice.mode = action.payload;
@@ -143,24 +142,6 @@ export const packagesSlice = createSlice({
 });
 
 const { setMode } = packagesSlice.actions;
-
-async function addFile(
-	acq: Acquisition,
-	client: AdbClient,
-	file: string,
-	path: string,
-	errorCallback: (e: string) => void,
-) {
-	console.log('pulling', file, 'to', path);
-	const generator = client.pullGenerator(file);
-	await acq.zipWriter.add(
-		`logs/${file}`,
-		getReadableStreamFromAsyncGenerator(generator, (e) => {
-			console.error(e);
-			errorCallback(`Failed to pull ${file}: ${e.message}`);
-		}),
-	);
-}
 
 export const packagesModule: Module = {
 	render: () => {
@@ -183,7 +164,13 @@ export const packagesModule: Module = {
 			</>
 		);
 	},
-	run: async (acq: Acquisition, client: AdbClient, state: RootState, errorCallback) => {
+	run: async (acq: Acquisition, client: AdbClient, state: RootState, _errorCallback) => {
+		await runShellAndAddToAcquisition(
+			acq,
+			client,
+			'pm query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER',
+			`packages/launcher_activites`,
+		);
 		const packages = await getPackages(client);
 		acq.addFileFromString('packages/packages.json', JSON.stringify(packages));
 
@@ -191,18 +178,15 @@ export const packagesModule: Module = {
 			(pkg) =>
 				state.packages.mode === Mode.All || (state.packages.mode === Mode.NotSystem && !pkg.system),
 		);
-		const promises = [];
-		for (const pkg of packagesToDownload.slice(0, 3)) {
+		for (const pkg of packagesToDownload) {
 			for (const file of pkg.files) {
 				const localPath = 'packages/' + getPathToLocalCopy(pkg.name, file.path);
-				if (SEQUENTIAL_LOAD) {
-					await addFile(acq, client, file.path, localPath, errorCallback);
-				} else {
-					promises.push(addFile(acq, client, file.path, localPath, errorCallback));
-				}
+				await acq.addFileFromReadableStream(
+					`packages/${localPath}`,
+					await client.pullAsStream(file.path),
+				);
 			}
 		}
-		await Promise.all(promises);
 	},
 	name: 'Packages',
 };

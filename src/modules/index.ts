@@ -5,12 +5,13 @@ import { RootState } from '../state';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { Acquisition } from '../utils/acquisition';
 import { backupModule, backupSlice } from './backup';
-import { fakedataModule } from './fakedata';
 import { getHashData } from '../utils/getHashData';
 import { logcatModule } from './logcat';
 import { getpropModule } from './getprop';
 import { logsModule } from './logs';
 import { packagesModule, packagesSlice } from './packages';
+import { processesModule } from './processes';
+import { settingsModule } from './settings';
 
 export type ModuleRunFunction = (
 	storage: Acquisition,
@@ -19,7 +20,7 @@ export type ModuleRunFunction = (
 	errorCallback: (e: string) => void,
 ) => Promise<void>;
 
-export type Module = {
+export interface Module {
 	render: () => JSX.Element;
 	run: ModuleRunFunction;
 	name: string;
@@ -30,11 +31,12 @@ export const ALL_MODULES = {
 	dumpsys: dumpsysModule,
 	env: envModule,
 	backup: backupModule,
-	fakedata: fakedataModule,
 	logcat: logcatModule,
 	getprop: getpropModule,
 	logs: logsModule,
 	packages: packagesModule,
+	processes: processesModule,
+	settings: settingsModule
 } as const;
 
 export type ModulesState = {

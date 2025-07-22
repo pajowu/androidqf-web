@@ -1,7 +1,6 @@
 import { AdbClient } from 'wadb';
 import { Module } from '.';
-import { RootState } from '../state';
-import { Acquisition, getReadableStreamFromAsyncGenerator } from '../utils/acquisition';
+import { Acquisition } from '../utils/acquisition';
 
 // taken from https://github.com/mvt-project/androidqf/blob/facb7a02e30e81dcf5f35d3597c8403b93b47418/modules/logs.go
 const LOGFILES = [
@@ -25,15 +24,12 @@ async function addFiles(
 	errorCallback: (e: string) => void,
 ) {
 	for (const file of files) {
-		console.log('pulling', file);
-		const generator = client.pullGenerator(file);
-		await acq.zipWriter.add(
-			`logs/${file}`,
-			getReadableStreamFromAsyncGenerator(generator, (e) => {
-				console.error(e);
-				errorCallback(`Failed to pull ${file}: ${e.message}`);
-			}),
-		);
+		try {
+			await acq.addFileFromReadableStream(`logs/${file}`, await client.pullAsStream(file));
+		} catch (e) {
+			const err = e as Error;
+			errorCallback(err.message);
+		}
 	}
 }
 export const logsModule: Module = {

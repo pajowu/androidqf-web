@@ -48,23 +48,6 @@ export function ModuleCard({
 	);
 }
 
-function downloadURL(data: string, fileName: string) {
-	const a = document.createElement('a');
-	a.href = data;
-	a.download = fileName;
-	document.body.appendChild(a);
-	a.style.display = 'none';
-	a.click();
-	a.remove();
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-	const url = window.URL.createObjectURL(blob);
-	downloadURL(url, filename);
-
-	setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-}
-
 export function ModuleRunButton() {
 	const [error, setError] = useState(null as string | null);
 	const dispatch = useAppDispatch();
@@ -83,9 +66,10 @@ export function ModuleRunButton() {
 						return;
 					}
 					const state: RootState = store.getState();
+					const fileHandle = await window.showSaveFilePicker({ suggestedName: 'archive' });
 					const acq: Acquisition = new Acquisition(
+						await fileHandle.createWritable(),
 						state.general.encrypt ? state.general.ageRecipient : null,
-						(array, { idx }) => downloadBlob(new Blob([array]), `acq.zip.${idx + 1}`),
 					);
 					setError("");
 					try {

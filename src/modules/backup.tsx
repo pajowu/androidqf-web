@@ -5,6 +5,7 @@ import { Acquisition } from '../utils/acquisition';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector } from '../state/hooks';
 import { Select } from '../components/input';
+import { getHashData } from '../utils/getHashData';
 
 enum Mode {
 	OnlySMS = 'Only SMS',
@@ -12,11 +13,18 @@ enum Mode {
 }
 export type BackupSlice = { mode: Mode };
 
+function getInitialState(): BackupSlice {
+	const hashData = getHashData();
+	return {
+		mode:
+			'backup.mode' in hashData && hashData['backup.mode'] == 'everything'
+				? Mode.Everything
+				: Mode.OnlySMS,
+	};
+}
 export const backupSlice = createSlice({
 	name: 'backup',
-	initialState: {
-		mode: Mode.OnlySMS,
-	} as BackupSlice,
+	initialState: getInitialState,
 	reducers: {
 		setMode: (slice, action: PayloadAction<Mode>) => {
 			slice.mode = action.payload;
@@ -58,7 +66,7 @@ export const backupModule: Module = {
 				break;
 		}
 		const backup = await client.backup(service);
-		acq.addFileFromBlob('backup.ab', backup);
+		await acq.addFileFromReadableStream('backup.ab', backup);
 	},
 	name: 'Backup',
 };

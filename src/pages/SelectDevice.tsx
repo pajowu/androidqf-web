@@ -132,6 +132,7 @@ function StatusComponent({ setClient }: { setClient: (_a: AdbClient) => void }):
 						.then(setClient);
 				}}
 				onPaired={(transport: WebUsbTransport) => {
+					setCurrentDevice(transport.device);
 					refreshDevices();
 					setClient(new AdbClient(transport, options, keyStore));
 				}}

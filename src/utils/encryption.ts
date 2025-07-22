@@ -1,6 +1,4 @@
-import age from 'age-encryption';
-
-export const { Encrypter } = await age();
+import { Encrypter } from "age-encryption";
 
 export function isValidAgeRecipient(recipient: string): boolean {
 	const e = new Encrypter();
