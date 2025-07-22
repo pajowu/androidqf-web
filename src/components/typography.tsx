@@ -6,3 +6,8 @@ export const Heading3 = reactHtmlWithClassname('h3', 'font-bold text-2xl');
 export const Heading4 = reactHtmlWithClassname('h4', 'font-bold text-xl');
 export const Heading5 = reactHtmlWithClassname('h5', 'font-bold text-lg');
 export const Heading6 = reactHtmlWithClassname('h6', 'font-bold text-base');
+export const Paragraph = reactHtmlWithClassname('p', 'my-4');
+export const WarnParagraph = reactHtmlWithClassname(
+	'p',
+	'my-4 rounded-lg p-4 bg-amber-300 dark:bg-amber-600',
+);

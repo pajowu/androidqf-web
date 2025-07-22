@@ -4,7 +4,7 @@ import { Stepper } from './components/stepper';
 import { SelectDevice } from './pages/SelectDevice';
 import { ModuleSettings } from './pages/ModuleSettings';
 import { AppContainer } from './components/AppContainer';
-import { Heading1 } from './components/headings';
+import { Heading1 } from './components/typography';
 import { GeneralSettings } from './pages/GeneralSettings';
 import { PropsWithChildren } from 'react';
 import { Link } from './components/Link';

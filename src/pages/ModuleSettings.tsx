@@ -6,13 +6,18 @@ import { RootState, store } from '../state';
 import { useAppDispatch, useAppSelector } from '../state/hooks';
 import { Spinner } from '../components/spinner';
 import { Acquisition } from '../utils/acquisition';
-import { Heading2 } from '../components/headings';
+import { Heading2, Paragraph } from '../components/typography';
 import { Checkbox } from '../components/input';
 
 export function ModuleSettings() {
 	return (
 		<>
 			<Heading2 className="mb-4">Select Modules</Heading2>
+			<Paragraph>
+				Below you can select which data should be collected. Once you selected the data you want to
+				collect, press the "Run" button to start the data collection process. This may take some
+				minutes and you need to confirm the collection on your phone.
+			</Paragraph>
 			<ModuleCards />
 			<ModuleRunButton />
 		</>
@@ -71,7 +76,7 @@ export function ModuleRunButton() {
 						await fileHandle.createWritable(),
 						state.general.encrypt ? state.general.ageRecipient : null,
 					);
-					setError("");
+					setError('');
 					try {
 						const funcs_to_run = Object.entries(ALL_MODULES)
 							.map(([k, v]) =>
