@@ -44,7 +44,6 @@ function trimPrefix(input: string, prefix: string): string {
 }
 async function runPmAndPreParse(client: AdbClient, args: string): Promise<[string, string][]> {
 	const packageList = await client.shell(`pm list packages ${args}`);
-
 	const packageData: [string, string][] = [];
 	for (const line of packageList.trim().split('\n')) {
 		const [packageName, data] = line.split(/\s+/, 2);
@@ -106,12 +105,12 @@ async function getPackages(client: AdbClient): Promise<PackageInfo[]> {
 }
 
 function getPathToLocalCopy(packageName: string, path: string): string {
-	let fileName = `packages/apks/${packageName}/`;
-	if (path.includes('==/')) {
-		fileName += '_' + path.split('==/')[1].replace('.apk', '');
+	let fileName = `packages/apks/${packageName}`;
+	if (path.includes('/')) {
+		fileName += '_' + path.split('/').pop()!.replace('.apk', '');
 	}
 	// TODO: Avoid collisions
-	return `${packageName}${fileName}.apk`;
+	return `${fileName}.apk`;
 }
 
 enum Mode {
@@ -164,7 +163,7 @@ export const packagesModule: Module = {
 			</>
 		);
 	},
-	run: async (acq: Acquisition, client: AdbClient, state: RootState, _errorCallback) => {
+	run: async (acq: Acquisition, client: AdbClient, state: RootState, errorCallback) => {
 		await runShellAndAddToAcquisition(
 			acq,
 			client,
@@ -181,10 +180,12 @@ export const packagesModule: Module = {
 		for (const pkg of packagesToDownload) {
 			for (const file of pkg.files) {
 				const localPath = 'packages/' + getPathToLocalCopy(pkg.name, file.path);
-				await acq.addFileFromReadableStream(
-					`packages/${localPath}`,
-					await client.pullAsStream(file.path),
-				);
+				try {
+					await acq.addFileFromReadableStream(localPath, await client.pullAsStream(file.path));
+				} catch (e) {
+					const err = e as Error;
+					errorCallback(err.message);
+				}
 			}
 		}
 	},
