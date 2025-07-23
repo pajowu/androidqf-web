@@ -150,7 +150,7 @@ function StatusComponent({ setClient }: { setClient: (_a: AdbClient) => void }):
 			</Paragraph>
 			<Paragraph>
 				If you do not see your device in the list below, you might need to grant AndroidQF-Web
-				permission to access it first. You can do so by clicking "Add New Device" and allowing
+				permission to access it first. You can do so by clicking &quot;Add New Device&quot; and allowing
 				access to your device in the browser popup.
 			</Paragraph>
 

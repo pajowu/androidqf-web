@@ -370,6 +370,11 @@
   resolved "https://registry.yarnpkg.com/@types/w3c-web-usb/-/w3c-web-usb-1.0.6.tgz#5d8560d0d9f585ffc80865bc773db7bc975b680c"
   integrity sha512-cSjhgrr8g4KbPnnijAr/KJDNKa/bBa+ixYkywFRvrhvi9n1WEl7yYbtRyzE6jqNQiSxxJxoAW3STaOQwJHndaw==
 
+"@types/wicg-file-system-access@^2023.10.6":
+  version "2023.10.6"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2023.10.6.tgz#cd8149b14c31b73a53478e656790873945e73ba1"
+  integrity sha512-YO/183gNRzZFSdKu+ikkD7ambAj4PhgjFAF2A/Mw/7wroSF6ne8r804RkpZzqrJ/F6DO2/IYlQF/ULOZ/bhKyA==
+
 "@typescript-eslint/eslint-plugin@^2.28.0":
   version "2.34.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-2.34.0.tgz#6f8ce8a46c7dea4a6f1d171d2bb8fbae6dac2be9"
@@ -3190,9 +3195,9 @@ vite@^4.1.4:
   optionalDependencies:
     fsevents "~2.3.2"
 
-"wadb@github:pajowu/wadb#6b24082e8140628e68e466cf2b6846ba6dd7a6ca":
+"wadb@github:pajowu/wadb#656a2f89358da4738543709e1d952bb20b898966":
   version "0.1.0"
-  resolved "https://codeload.github.com/pajowu/wadb/tar.gz/6b24082e8140628e68e466cf2b6846ba6dd7a6ca"
+  resolved "https://codeload.github.com/pajowu/wadb/tar.gz/656a2f89358da4738543709e1d952bb20b898966"
   dependencies:
     "@types/jasmine" "^3.5.10"
     "@types/node" "^22.14.0"

@@ -15,7 +15,7 @@ export function ModuleSettings() {
 			<Heading2 className="mb-4">Select Modules</Heading2>
 			<Paragraph>
 				Below you can select which data should be collected. Once you selected the data you want to
-				collect, press the "Run" button to start the data collection process. This may take some
+				collect, press the &quot;Run&quot; button to start the data collection process. This may take some
 				minutes and you need to confirm the collection on your phone.
 			</Paragraph>
 			<ModuleCards />
