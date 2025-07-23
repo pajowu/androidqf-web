@@ -63,7 +63,14 @@ export function ModuleRunButton() {
 	const bg_color = canRun ? 'bg-green-600' : 'bg-slate-300 dark:bg-slate-600';
 	return (
 		<>
-			{error && <div className="bg-red-200 dark:bg-red-700 p-4 border whitespace-pre">{error}</div>}
+			{error && (
+				<div className="bg-red-200 dark:bg-red-700 p-4 border whitespace-pre">
+					<details>
+						<summary>An error occurred during data collection. Click here to show more</summary>
+						{error}
+					</details>
+				</div>
+			)}
 			<button
 				className={`${bg_color} w-full p-4 text-white text-xl font-bold rounded-b-lg border`}
 				onClick={async () => {
