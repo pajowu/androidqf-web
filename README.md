@@ -1,7 +1,7 @@
 # AndroidQF-Web
 
 AndroidQF-Web is a web-based tool for the acquisition of forensic data from android devices using WebUSB.
-It is heavily based on [androidqf](https://github.com/botherder/androidqf)
+It is heavily based on [androidqf](https://github.com/mvt-project/androidqf)
 
 ## Usage
 
